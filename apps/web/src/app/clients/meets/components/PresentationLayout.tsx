@@ -38,6 +38,7 @@ function PresentationLayout({
   getDisplayName,
 }: PresentationLayoutProps) {
   const localVideoRef = useRef<HTMLVideoElement>(null);
+  const presentationVideoRef = useRef<HTMLVideoElement>(null);
   const isLocalActiveSpeaker = activeSpeakerId === currentUserId;
 
   useEffect(() => {
@@ -52,13 +53,25 @@ function PresentationLayout({
     }
   }, [localStream]);
 
+  useEffect(() => {
+    const video = presentationVideoRef.current;
+    if (video && presentationStream) {
+      if (video.srcObject !== presentationStream) {
+        video.srcObject = presentationStream;
+        video.play().catch((err) => {
+          if (err.name !== "AbortError") {
+            console.error("[Meets] Presentation video play error:", err);
+          }
+        });
+      }
+    }
+  }, [presentationStream]);
+
   return (
     <div className="flex flex-1 gap-4 overflow-hidden">
       <div className="flex-1 bg-[#252525] border border-white/5 rounded-lg overflow-hidden relative flex items-center justify-center">
         <video
-          ref={(el) => {
-            if (el && presentationStream) el.srcObject = presentationStream;
-          }}
+          ref={presentationVideoRef}
           autoPlay
           playsInline
           className="max-w-full max-h-full"
