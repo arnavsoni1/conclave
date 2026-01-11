@@ -770,14 +770,24 @@ export function useMeetMedia({
     if (!transport) return;
 
     try {
+      const videoConstraints: MediaTrackConstraints & {
+        cursor?: "always" | "motion" | "never";
+      } = {
+        frameRate: { ideal: 30, max: 60 },
+        width: { ideal: 1920 },
+        height: { ideal: 1080 },
+        cursor: "always",
+      };
+
       const stream = await navigator.mediaDevices.getDisplayMedia({
-        video: true,
+        video: videoConstraints,
         audio: true,
       });
       const track = stream.getVideoTracks()[0];
 
       const producer = await transport.produce({
         track,
+        encodings: [{ maxBitrate: 2500000 }],
         appData: { type: "screen" as ProducerType },
       });
 

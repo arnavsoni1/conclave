@@ -1,7 +1,7 @@
 "use client";
 
 import { Roboto } from "next/font/google";
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import type { RoomInfo } from "@/lib/sfu-types";
 import {
   MeetsErrorBanner,
@@ -340,13 +340,17 @@ export default function MeetsClient({
   if (!mounted) return null;
 
   // Determine presentation mode
+  const screenTrack = refs.screenProducerRef.current?.track;
+  const localScreenShareStream = useMemo(() => {
+    if (!screenTrack) return null;
+    return new MediaStream([screenTrack]);
+  }, [screenTrack]);
+
   let presentationStream: MediaStream | null = null;
   let presenterName = "";
 
-  if (isScreenSharing && refs.screenProducerRef.current?.track) {
-    presentationStream = new MediaStream([
-      refs.screenProducerRef.current.track,
-    ]);
+  if (isScreenSharing && localScreenShareStream) {
+    presentationStream = localScreenShareStream;
     presenterName = "You";
   } else if (activeScreenShareId) {
     for (const p of participants.values()) {
