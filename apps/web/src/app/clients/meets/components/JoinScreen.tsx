@@ -78,9 +78,7 @@ export default function JoinScreen({
   const [localStream, setLocalStream] = useState<MediaStream | null>(null);
   const [isCameraOn, setIsCameraOn] = useState(false); // Start with camera off
   const [isMicOn, setIsMicOn] = useState(false); // Start with mic off
-  const isRoutedRoom =
-    forceJoinOnly ||
-    (enableRoomRouting && normalizedRoomId.trim().length > 0);
+  const isRoutedRoom = forceJoinOnly;
   const [activeTab, setActiveTab] = useState<"new" | "join">(() =>
     isRoutedRoom ? "join" : "new"
   );
@@ -205,6 +203,9 @@ export default function JoinScreen({
       }
     }
   };
+
+  const sanitizeRoomCode = (value: string) =>
+    value.toLowerCase().replace(/[^a-z0-9]/g, "").slice(0, 4);
 
   const handleCreateRoom = () => {
     onIsAdminChange(true);
@@ -415,10 +416,10 @@ export default function JoinScreen({
         )}
 
         {phase === "join" && (
-          <div className="w-full max-w-4xl flex gap-8">
+          <div className="w-full max-w-4xl flex flex-col lg:flex-row gap-6 lg:gap-8">
           
           <div className="flex-1 flex flex-col">
-            <div className="relative aspect-[4/3] bg-[#0d0e0d] rounded-xl overflow-hidden border border-[#FEFCD9]/10 shadow-2xl">
+            <div className="relative aspect-video lg:aspect-[4/3] bg-[#0d0e0d] rounded-xl overflow-hidden border border-[#FEFCD9]/10 shadow-2xl">
               {isCameraOn && localStream ? (
                 <video ref={videoRef} autoPlay muted playsInline className="w-full h-full object-cover scale-x-[-1]" />
               ) : (
@@ -451,7 +452,7 @@ export default function JoinScreen({
             )}
           </div>
 
-          <div className="w-80 flex flex-col">
+          <div className="w-full lg:w-80 flex flex-col">
             {!isRoutedRoom && (
               <div className="flex mb-6 bg-[#1a1a1a] rounded-lg p-1">
                 <button
@@ -526,8 +527,9 @@ export default function JoinScreen({
                   <input
                     type="text"
                     value={normalizedRoomId}
-                    onChange={(e) => onRoomIdChange(e.target.value)}
+                    onChange={(e) => onRoomIdChange(sanitizeRoomCode(e.target.value))}
                     placeholder="Enter code"
+                    maxLength={4}
                     disabled={isLoading}
                     readOnly={isRoutedRoom}
                     className="w-full px-3 py-2.5 bg-[#1a1a1a] border border-[#FEFCD9]/10 rounded-lg text-sm text-[#FEFCD9] placeholder:text-[#FEFCD9]/30 focus:border-[#F95F4A]/50 focus:outline-none"
