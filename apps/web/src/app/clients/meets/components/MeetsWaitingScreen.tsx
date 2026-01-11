@@ -47,20 +47,11 @@ export default function MeetsWaitingScreen({
           <span className="text-[#FEFCD9]">{waitingTitle.split(' ').slice(1).join(' ')}</span>
         </h2>
         
-        <p 
+        <p
           className="text-[#FEFCD9]/50 text-center max-w-md px-6 leading-relaxed text-sm"
           style={{ fontFamily: "'PolySans Trial', sans-serif" }}
         >
-          {waitingIntro} If you are facing issues, ask on the{" "}
-          <a
-            href="https://chat.whatsapp.com/Lj6GFN4bLggBJmQWBwUSTz"
-            className="text-[#F95F4A] hover:text-[#FF007A] underline underline-offset-2 transition-colors"
-            target="_blank"
-            rel="noreferrer"
-          >
-            ACM Community WhatsApp
-          </a>
-          .
+          {waitingIntro} The host will admit you shortly.
         </p>
         
         {isAdmin && (

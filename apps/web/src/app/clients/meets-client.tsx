@@ -366,10 +366,10 @@ export default function MeetsClient({
     connectionState === "waiting"; // Waiting is a kind of loading state visually, or handled separately
 
   if (connectionState === "waiting") {
-    const waitingTitle = waitingMessage ?? "Waiting for host...";
+    const waitingTitle = waitingMessage ?? "Waiting for host to let you in";
     const waitingIntro = waitingMessage
       ? "The host left the room, so there is no one available to admit you right now."
-      : "Please wait to be let in.";
+      : "Hang tight—wait for the host to admit you.";
     return (
       <MeetsWaitingScreen
         waitingTitle={waitingTitle}
