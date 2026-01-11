@@ -223,8 +223,8 @@ export default function MeetsMainContent({
             <Image
               src="/assets/acm_topleft.svg"
               alt="ACM Logo"
-              width={40}
-              height={40}
+              width={129}
+              height={129}
             />
           </a>
           <div className="flex-1 flex justify-center">
