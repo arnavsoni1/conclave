@@ -184,29 +184,32 @@ function MobileMeetsMainContent({
       <div className="safe-area-pt bg-[#0d0e0d]" />
 
       {/* Header with room info */}
-      <div className="flex items-center justify-between px-4 py-2 bg-[#0d0e0d]">
+      <div 
+        className="flex items-center justify-between px-4 py-2 bg-[#0d0e0d]"
+        style={{ fontFamily: "'PolySans Mono', monospace" }}
+      >
         <div className="flex items-center gap-2">
-          <span className="text-sm font-medium text-[#FEFCD9]">
+          <span className="text-sm font-medium text-[#FEFCD9] uppercase tracking-wide">
             {roomId.toUpperCase()}
           </span>
-          <span className="text-[10px] text-[#FEFCD9]/40 uppercase">
+          <span className="text-[10px] text-[#FEFCD9]/40 uppercase tracking-wide">
             • {participants.size + 1} in call
           </span>
         </div>
         <div className="flex items-center gap-2">
           {isScreenSharing && (
-            <div className="flex items-center gap-1 text-[#F95F4A] text-[9px] uppercase tracking-wider">
+            <div className="flex items-center gap-1 text-[#F95F4A] text-[9px] uppercase tracking-wider font-medium">
               <span className="w-1.5 h-1.5 rounded-full bg-[#F95F4A] animate-pulse" />
               Sharing
             </div>
           )}
           {ghostEnabled && (
-            <div className="flex items-center gap-1 text-[#FF007A] text-[9px] uppercase tracking-wider">
+            <div className="flex items-center gap-1 text-[#FF007A] text-[9px] uppercase tracking-wider font-medium">
               <Ghost className="w-3 h-3" />
             </div>
           )}
           {connectionState === "reconnecting" && (
-            <div className="flex items-center gap-1 text-amber-400 text-[9px] uppercase tracking-wider">
+            <div className="flex items-center gap-1 text-amber-400 text-[9px] uppercase tracking-wider font-medium">
               <RefreshCw className="w-3 h-3 animate-spin" />
             </div>
           )}

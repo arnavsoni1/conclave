@@ -129,6 +129,7 @@ function MobileControlsBar({
         >
           <div
             className="absolute bottom-20 right-4 left-4 bg-[#1a1a1a] border border-[#FEFCD9]/10 rounded-2xl py-2 max-h-[50vh] overflow-y-auto touch-pan-y"
+            style={{ fontFamily: "'PolySans Mono', monospace" }}
             onClick={(e) => e.stopPropagation()}
           >
             <button
@@ -139,9 +140,9 @@ function MobileControlsBar({
               className="w-full flex items-center gap-3 px-4 py-3 text-[#FEFCD9] hover:bg-[#FEFCD9]/5 active:bg-[#FEFCD9]/10"
             >
               <Users className="w-5 h-5" />
-              <span className="text-sm">Participants</span>
+              <span className="text-sm font-medium">Participants</span>
               {pendingUsersCount > 0 && (
-                <span className="ml-auto text-xs bg-[#F95F4A] text-white px-1.5 py-0.5 rounded-full">
+                <span className="ml-auto text-xs bg-[#F95F4A] text-white px-1.5 py-0.5 rounded-full font-bold">
                   {pendingUsersCount}
                 </span>
               )}
@@ -161,7 +162,7 @@ function MobileControlsBar({
               } hover:bg-[#FEFCD9]/5 active:bg-[#FEFCD9]/10`}
             >
               <Hand className="w-5 h-5" />
-              <span className="text-sm">{isHandRaised ? "Lower hand" : "Raise hand"}</span>
+              <span className="text-sm font-medium">{isHandRaised ? "Lower hand" : "Raise hand"}</span>
             </button>
             <button
               onClick={() => {
@@ -178,7 +179,7 @@ function MobileControlsBar({
               } hover:bg-[#FEFCD9]/5 active:bg-[#FEFCD9]/10`}
             >
               <Monitor className="w-5 h-5" />
-              <span className="text-sm">{isScreenSharing ? "Stop sharing" : "Share screen"}</span>
+              <span className="text-sm font-medium">{isScreenSharing ? "Stop sharing" : "Share screen"}</span>
             </button>
           </div>
         </div>

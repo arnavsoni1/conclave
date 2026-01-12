@@ -80,7 +80,7 @@ function MobilePresentationLayout({
       </div>
 
       {/* Participant thumbnails - fixed height strip */}
-      <div className="h-24 shrink-0 flex gap-2 overflow-x-auto no-scrollbar">
+      <div className="h-24 shrink-0 flex gap-2 overflow-x-auto no-scrollbar touch-pan-x">
         {/* Local video thumbnail */}
         <div className="relative w-24 h-24 shrink-0 bg-[#1a1a1a] rounded-xl overflow-hidden border border-[#FEFCD9]/10">
           <video
@@ -91,19 +91,22 @@ function MobilePresentationLayout({
             className={`w-full h-full object-cover ${isCameraOff ? "hidden" : ""} ${isMirrorCamera ? "scale-x-[-1]" : ""}`}
           />
           {isCameraOff && (
-            <div className="absolute inset-0 flex items-center justify-center bg-gradient-to-br from-[#252525] to-[#1a1a1a]">
-              <div className="w-10 h-10 rounded-full bg-gradient-to-br from-[#F95F4A]/30 to-[#FF007A]/30 border border-[#FEFCD9]/20 flex items-center justify-center text-lg text-[#FEFCD9] font-bold">
+            <div className="absolute inset-0 flex items-center justify-center bg-gradient-to-br from-[#1a1a1a] to-[#0d0e0d]">
+              <div className="w-10 h-10 rounded-full bg-gradient-to-br from-[#F95F4A]/20 to-[#FF007A]/20 border border-[#FEFCD9]/20 flex items-center justify-center text-lg text-[#FEFCD9] font-bold">
                 {userEmail[0]?.toUpperCase() || "?"}
               </div>
             </div>
           )}
           {isGhost && (
-            <div className="absolute inset-0 flex items-center justify-center pointer-events-none bg-black/50">
-              <Ghost className="w-6 h-6 text-[#FF007A]" />
+            <div className="absolute inset-0 flex items-center justify-center pointer-events-none bg-black/40">
+              <Ghost className="w-6 h-6 text-[#FF007A] drop-shadow-[0_0_15px_rgba(255,0,122,0.5)]" />
             </div>
           )}
-          <div className="absolute bottom-1 left-1 right-1 flex items-center justify-center">
-            <span className="bg-black/80 rounded-lg px-1.5 py-0.5 text-[10px] text-[#FEFCD9] font-medium flex items-center gap-1">
+          <div 
+            className="absolute bottom-1 left-1 right-1 flex items-center justify-center"
+            style={{ fontFamily: "'PolySans Mono', monospace" }}
+          >
+            <span className="bg-black/70 border border-[#FEFCD9]/10 rounded-full px-1.5 py-0.5 text-[10px] text-[#FEFCD9] font-medium uppercase tracking-wide flex items-center gap-1">
               You
               {isMuted && <MicOff className="w-2.5 h-2.5 text-[#F95F4A]" />}
             </span>
@@ -119,19 +122,22 @@ function MobilePresentationLayout({
             {participant.videoStream && !participant.isCameraOff ? (
               <VideoThumbnail participant={participant} />
             ) : (
-              <div className="absolute inset-0 flex items-center justify-center bg-gradient-to-br from-[#252525] to-[#1a1a1a]">
-                <div className="w-10 h-10 rounded-full bg-gradient-to-br from-[#F95F4A]/30 to-[#FF007A]/30 border border-[#FEFCD9]/20 flex items-center justify-center text-lg text-[#FEFCD9] font-bold">
+              <div className="absolute inset-0 flex items-center justify-center bg-gradient-to-br from-[#1a1a1a] to-[#0d0e0d]">
+                <div className="w-10 h-10 rounded-full bg-gradient-to-br from-[#F95F4A]/20 to-[#FF007A]/20 border border-[#FEFCD9]/20 flex items-center justify-center text-lg text-[#FEFCD9] font-bold">
                   {getDisplayName(participant.userId)[0]?.toUpperCase() || "?"}
                 </div>
               </div>
             )}
             {participant.isGhost && (
-              <div className="absolute inset-0 flex items-center justify-center pointer-events-none bg-black/50">
-                <Ghost className="w-6 h-6 text-[#FF007A]" />
+              <div className="absolute inset-0 flex items-center justify-center pointer-events-none bg-black/40">
+                <Ghost className="w-6 h-6 text-[#FF007A] drop-shadow-[0_0_15px_rgba(255,0,122,0.5)]" />
               </div>
             )}
-            <div className="absolute bottom-1 left-1 right-1 flex items-center justify-center">
-              <span className="bg-black/80 rounded-lg px-1.5 py-0.5 text-[10px] text-[#FEFCD9] font-medium truncate max-w-full flex items-center gap-1">
+            <div 
+              className="absolute bottom-1 left-1 right-1 flex items-center justify-center"
+              style={{ fontFamily: "'PolySans Mono', monospace" }}
+            >
+              <span className="bg-black/70 border border-[#FEFCD9]/10 rounded-full px-1.5 py-0.5 text-[10px] text-[#FEFCD9] font-medium uppercase tracking-wide truncate max-w-full flex items-center gap-1">
                 {getDisplayName(participant.userId).split(" ")[0]}
                 {participant.isMuted && <MicOff className="w-2.5 h-2.5 text-[#F95F4A]" />}
               </span>

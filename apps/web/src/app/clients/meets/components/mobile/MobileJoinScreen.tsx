@@ -249,7 +249,10 @@ function MobileJoinScreen({
       <div className="flex-1 flex items-center justify-center bg-[#0d0e0d]">
         <div className="flex flex-col items-center gap-4">
           <Loader2 className="w-6 h-6 text-[#F95F4A] animate-spin" />
-          <span className="text-xs text-[#FEFCD9]/40 uppercase tracking-widest">
+          <span 
+            className="text-xs text-[#FEFCD9]/40 uppercase tracking-widest"
+            style={{ fontFamily: "'PolySans Mono', monospace" }}
+          >
             Checking session...
           </span>
         </div>
@@ -262,17 +265,24 @@ function MobileJoinScreen({
     return (
       <div className="flex-1 flex flex-col items-center justify-center px-6 bg-[#0d0e0d] safe-area-pt safe-area-pb">
         <div className="text-center mb-8">
-          <h1 className="text-4xl text-[#FEFCD9] tracking-tight mb-2">
+          <h1 
+            className="text-4xl text-[#FEFCD9] tracking-tight mb-2"
+            style={{ fontFamily: "'PolySans Bulky Wide', sans-serif" }}
+          >
             c0nclav3
           </h1>
-          <p className="text-sm text-[#FEFCD9]/30">
+          <p 
+            className="text-sm text-[#FEFCD9]/30 uppercase tracking-widest"
+            style={{ fontFamily: "'PolySans Mono', monospace" }}
+          >
             Video conferencing by ACM-VIT
           </p>
         </div>
 
         <button
           onClick={() => setPhase("auth")}
-          className="flex items-center gap-3 px-8 py-4 bg-[#F95F4A] text-white text-sm uppercase tracking-widest rounded-xl active:scale-95 transition-transform"
+          className="flex items-center gap-3 px-8 py-4 bg-[#F95F4A] text-white text-sm uppercase tracking-widest rounded-lg active:scale-95 transition-transform"
+          style={{ fontFamily: "'PolySans Mono', monospace" }}
         >
           <span>Get Started</span>
           <ArrowRight className="w-4 h-4" />
@@ -288,13 +298,22 @@ function MobileJoinScreen({
         <button
           onClick={() => setPhase("welcome")}
           className="text-[11px] text-[#FEFCD9]/30 uppercase tracking-widest mb-8"
+          style={{ fontFamily: "'PolySans Mono', monospace" }}
         >
           ← back
         </button>
 
         <div className="flex-1 flex flex-col justify-center">
-          <h2 className="text-2xl text-[#FEFCD9] mb-2 text-center">Join</h2>
-          <p className="text-xs text-[#FEFCD9]/40 uppercase tracking-widest text-center mb-8">
+          <h2 
+            className="text-2xl text-[#FEFCD9] mb-2 text-center"
+            style={{ fontFamily: "'PolySans Bulky Wide', sans-serif" }}
+          >
+            Join
+          </h2>
+          <p 
+            className="text-xs text-[#FEFCD9]/40 uppercase tracking-widest text-center mb-8"
+            style={{ fontFamily: "'PolySans Mono', monospace" }}
+          >
             choose how to continue
           </p>
 
@@ -325,12 +344,15 @@ function MobileJoinScreen({
                 />
               </svg>
             )}
-            <span className="text-sm">Continue with Google</span>
+            <span className="text-sm" style={{ fontFamily: "'PolySans Trial', sans-serif" }}>Continue with Google</span>
           </button>
 
           <div className="flex items-center gap-4 my-6">
             <div className="flex-1 h-px bg-[#FEFCD9]/10" />
-            <span className="text-[10px] text-[#FEFCD9]/30 uppercase tracking-widest">
+            <span 
+              className="text-[10px] text-[#FEFCD9]/30 uppercase tracking-widest"
+              style={{ fontFamily: "'PolySans Mono', monospace" }}
+            >
               or
             </span>
             <div className="flex-1 h-px bg-[#FEFCD9]/10" />
@@ -342,6 +364,7 @@ function MobileJoinScreen({
             onChange={(e) => setGuestName(e.target.value)}
             placeholder="Enter your name"
             className="w-full px-4 py-4 bg-[#1a1a1a] border border-[#FEFCD9]/10 rounded-xl text-base text-[#FEFCD9] placeholder:text-[#FEFCD9]/25 focus:border-[#F95F4A]/50 focus:outline-none mb-3"
+            style={{ fontFamily: "'PolySans Mono', monospace" }}
             onKeyDown={(e) => {
               if (e.key === "Enter" && guestName.trim()) handleGuest();
             }}
@@ -350,6 +373,7 @@ function MobileJoinScreen({
             onClick={handleGuest}
             disabled={!guestName.trim()}
             className="w-full px-4 py-4 bg-[#F95F4A] text-white text-sm rounded-xl active:bg-[#e8553f] transition-colors disabled:opacity-30"
+            style={{ fontFamily: "'PolySans Trial', sans-serif" }}
           >
             Continue as Guest
           </button>
@@ -402,7 +426,10 @@ function MobileJoinScreen({
         </div>
 
         {/* User email */}
-        <div className="absolute top-4 left-4 px-3 py-1.5 bg-black/50 backdrop-blur-sm rounded-full text-xs text-[#FEFCD9]/70 max-w-[60%] truncate">
+        <div 
+          className="absolute top-4 left-4 px-3 py-1.5 bg-black/50 backdrop-blur-sm rounded-full text-xs text-[#FEFCD9]/70 max-w-[60%] truncate"
+          style={{ fontFamily: "'PolySans Mono', monospace" }}
+        >
           {userEmail}
         </div>
 
@@ -428,6 +455,7 @@ function MobileJoinScreen({
                   ? "bg-[#F95F4A] text-white"
                   : "text-[#FEFCD9]/50"
               }`}
+              style={{ fontFamily: "'PolySans Mono', monospace" }}
             >
               New Meeting
             </button>
@@ -441,6 +469,7 @@ function MobileJoinScreen({
                   ? "bg-[#F95F4A] text-white"
                   : "text-[#FEFCD9]/50"
               }`}
+              style={{ fontFamily: "'PolySans Mono', monospace" }}
             >
               Join
             </button>
@@ -458,7 +487,7 @@ function MobileJoinScreen({
             ) : (
               <Plus className="w-5 h-5" />
             )}
-            <span className="text-base font-medium">Start Meeting</span>
+            <span className="text-base font-medium" style={{ fontFamily: "'PolySans Trial', sans-serif" }}>Start Meeting</span>
           </button>
         ) : (
           <div className="space-y-3">
@@ -477,6 +506,7 @@ function MobileJoinScreen({
               disabled={isLoading}
               readOnly={isRoutedRoom}
               className="w-full px-4 py-4 bg-[#1a1a1a] border border-[#FEFCD9]/10 rounded-xl text-base text-[#FEFCD9] placeholder:text-[#FEFCD9]/30 focus:border-[#F95F4A]/50 focus:outline-none text-center uppercase tracking-widest"
+              style={{ fontFamily: "'PolySans Mono', monospace" }}
               onKeyDown={(e) => {
                 if (e.key === "Enter" && canJoin) onJoin();
               }}
@@ -491,7 +521,7 @@ function MobileJoinScreen({
               ) : (
                 <ArrowRight className="w-5 h-5" />
               )}
-              <span className="text-base font-medium">Join Meeting</span>
+              <span className="text-base font-medium" style={{ fontFamily: "'PolySans Trial', sans-serif" }}>Join Meeting</span>
             </button>
           </div>
         )}

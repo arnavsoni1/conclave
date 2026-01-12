@@ -38,8 +38,11 @@ function MobileParticipantsPanel({
   return (
     <div className="fixed inset-0 bg-[#1a1a1a] z-50 flex flex-col safe-area-pt safe-area-pb">
       {/* Header */}
-      <div className="flex items-center justify-between px-4 py-3 border-b border-[#FEFCD9]/10">
-        <h2 className="text-lg font-semibold text-[#FEFCD9]">
+      <div 
+        className="flex items-center justify-between px-4 py-3 border-b border-[#FEFCD9]/10"
+        style={{ fontFamily: "'PolySans Mono', monospace" }}
+      >
+        <h2 className="text-lg font-semibold text-[#FEFCD9] uppercase tracking-wide">
           Participants ({participantArray.length + 1})
         </h2>
         <button

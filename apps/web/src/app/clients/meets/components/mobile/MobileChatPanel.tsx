@@ -56,8 +56,11 @@ function MobileChatPanel({
   return (
     <div className="fixed inset-0 bg-[#1a1a1a] z-50 flex flex-col safe-area-pt safe-area-pb">
       {/* Header */}
-      <div className="flex items-center justify-between px-4 py-3 border-b border-[#FEFCD9]/10">
-        <h2 className="text-lg font-semibold text-[#FEFCD9]">Chat</h2>
+      <div 
+        className="flex items-center justify-between px-4 py-3 border-b border-[#FEFCD9]/10"
+        style={{ fontFamily: "'PolySans Mono', monospace" }}
+      >
+        <h2 className="text-lg font-semibold text-[#FEFCD9] uppercase tracking-wide">Chat</h2>
         <button
           onClick={onClose}
           className="p-2 rounded-full hover:bg-[#FEFCD9]/10 text-[#FEFCD9]/70"
