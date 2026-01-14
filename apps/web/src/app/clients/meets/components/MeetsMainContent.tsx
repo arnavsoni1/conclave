@@ -235,9 +235,9 @@ export default function MeetsMainContent({
   const browserVideoStream = useMemo(() => {
     const videoParticipant = Array.from(participants.values()).find(
       (participant) =>
-        isBrowserVideoUserId(participant.userId) && participant.videoStream
+        isBrowserVideoUserId(participant.userId) && participant.screenShareStream
     );
-    return videoParticipant?.videoStream ?? null;
+    return videoParticipant?.screenShareStream ?? null;
   }, [participants]);
   return (
     <div className="flex-1 flex flex-col p-4 overflow-hidden relative">

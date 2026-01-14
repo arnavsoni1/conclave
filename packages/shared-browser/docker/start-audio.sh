@@ -31,9 +31,11 @@ pactl set-default-sink browser_sink >/dev/null || true
 BITRATE="${AUDIO_BITRATE:-128k}"
 PAYLOAD="${AUDIO_PAYLOAD_TYPE:-111}"
 SSRC="${AUDIO_SSRC:-11111111}"
+RTCP_PORT="${AUDIO_RTCP_PORT:-$((AUDIO_TARGET_PORT + 1))}"
 
 exec ffmpeg -nostdin -hide_banner -loglevel warning \
   -f pulse -i browser_sink.monitor \
-  -ac 2 -ar 48000 -c:a libopus -b:a "${BITRATE}" \
-  -application audio -payload_type "${PAYLOAD}" -ssrc "${SSRC}" \
-  -f rtp "rtp://${AUDIO_TARGET_IP}:${AUDIO_TARGET_PORT}?pkt_size=1200&rtcpport=${AUDIO_TARGET_PORT}"
+  -ac 2 -ar 48000 -c:a libopus -b:a "${BITRATE}" -application lowdelay \
+  -payload_type "${PAYLOAD}" -ssrc "${SSRC}" \
+  -f rtp "rtp://${AUDIO_TARGET_IP}:${AUDIO_TARGET_PORT}?rtcpport=${RTCP_PORT}&pkt_size=1200"
+

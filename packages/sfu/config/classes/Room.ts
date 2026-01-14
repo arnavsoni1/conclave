@@ -170,7 +170,7 @@ export class Room {
         ip: config.plainTransport.listenIp,
         announcedIp: config.plainTransport.announcedIp || undefined,
       },
-      rtcpMux: true,
+      rtcpMux: false,
       comedia: true,
     });
 

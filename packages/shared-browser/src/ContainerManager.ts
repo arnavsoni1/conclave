@@ -131,6 +131,7 @@ export class ContainerManager {
                 const targetIp = overrideHost || (isLoopback ? "host.docker.internal" : audioTarget.ip);
                 containerEnv.push(`AUDIO_TARGET_IP=${targetIp}`);
                 containerEnv.push(`AUDIO_TARGET_PORT=${audioTarget.port}`);
+                containerEnv.push(`AUDIO_RTCP_PORT=${audioTarget.rtcpPort}`);
                 containerEnv.push(`AUDIO_PAYLOAD_TYPE=${audioTarget.payloadType}`);
                 containerEnv.push(`AUDIO_SSRC=${audioTarget.ssrc}`);
             }
@@ -145,6 +146,7 @@ export class ContainerManager {
                 const targetIp = overrideHost || (isLoopback ? "host.docker.internal" : videoTarget.ip);
                 containerEnv.push(`VIDEO_TARGET_IP=${targetIp}`);
                 containerEnv.push(`VIDEO_TARGET_PORT=${videoTarget.port}`);
+                containerEnv.push(`VIDEO_RTCP_PORT=${videoTarget.rtcpPort}`);
                 containerEnv.push(`VIDEO_PAYLOAD_TYPE=${videoTarget.payloadType}`);
                 containerEnv.push(`VIDEO_SSRC=${videoTarget.ssrc}`);
             }

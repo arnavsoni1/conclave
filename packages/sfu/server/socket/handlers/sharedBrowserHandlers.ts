@@ -69,6 +69,7 @@ const createBrowserAudioProducer = async (
 ): Promise<{
     ip: string;
     port: number;
+    rtcpPort: number;
     payloadType: number;
     ssrc: number;
 } | null> => {
@@ -82,13 +83,14 @@ const createBrowserAudioProducer = async (
                 config.webRtcTransport.listenIps[0]?.announcedIp ||
                 existing.transport.tuple.localIp,
             port: existing.transport.tuple.localPort,
+            rtcpPort: existing.transport.rtcpTuple?.localPort ?? existing.transport.tuple.localPort + 1,
             payloadType: existing.payloadType,
             ssrc: existing.ssrc,
         };
     }
 
     const transport = await context.currentRoom.createPlainTransport();
-    const ssrc = Math.floor(Math.random() * 0xffffffff);
+    const ssrc = Math.floor(Math.random() * 0x7fffffff);
     const rtpParameters: RtpParameters = {
         codecs: [
             {
@@ -135,6 +137,7 @@ const createBrowserAudioProducer = async (
     return {
         ip: targetIp,
         port: transport.tuple.localPort,
+        rtcpPort: transport.rtcpTuple?.localPort ?? transport.tuple.localPort + 1,
         payloadType: BROWSER_AUDIO_PAYLOAD_TYPE,
         ssrc,
     };
@@ -177,6 +180,7 @@ const createBrowserVideoProducer = async (
 ): Promise<{
     ip: string;
     port: number;
+    rtcpPort: number;
     payloadType: number;
     ssrc: number;
 } | null> => {
@@ -190,13 +194,14 @@ const createBrowserVideoProducer = async (
                 config.webRtcTransport.listenIps[0]?.announcedIp ||
                 existing.transport.tuple.localIp,
             port: existing.transport.tuple.localPort,
+            rtcpPort: existing.transport.rtcpTuple?.localPort ?? existing.transport.tuple.localPort + 1,
             payloadType: existing.payloadType,
             ssrc: existing.ssrc,
         };
     }
 
     const transport = await context.currentRoom.createPlainTransport();
-    const ssrc = Math.floor(Math.random() * 0xffffffff);
+    const ssrc = Math.floor(Math.random() * 0x7fffffff);
     const rtpParameters: RtpParameters = {
         codecs: [
             {
@@ -242,6 +247,7 @@ const createBrowserVideoProducer = async (
     return {
         ip: targetIp,
         port: transport.tuple.localPort,
+        rtcpPort: transport.rtcpTuple?.localPort ?? transport.tuple.localPort + 1,
         payloadType: BROWSER_VIDEO_PAYLOAD_TYPE,
         ssrc,
     };

@@ -157,26 +157,26 @@ function BrowserLayout({
                         )}
                     </div>
                 )}
-                <div className="flex-1 min-h-0 relative bg-black">
+                <div className="flex-1 min-h-0 flex items-center justify-center bg-black">
                     {browserVideoStream ? (
-                        <>
+                        <div className="relative w-full h-full max-w-[calc(100vh*16/9)] aspect-video bg-black">
                             <video
                                 ref={browserVideoRef}
                                 autoPlay
                                 playsInline
                                 muted
-                                className="absolute inset-0 w-full h-full object-contain bg-black"
+                                className="absolute inset-0 w-full h-full object-fill"
                             />
                             {isReady && (
                                 <iframe
-                                    src={resolvedNoVncUrl}
+                                    src={`${resolvedNoVncUrl}${resolvedNoVncUrl.includes("?") ? "&" : "?"}compression=9&quality=0&resize=scale`}
                                     className="absolute inset-0 w-full h-full border-0 opacity-0"
                                     style={{ pointerEvents: "auto" }}
                                     allow="clipboard-read; clipboard-write"
                                     title="Shared Browser Input"
                                 />
                             )}
-                        </>
+                        </div>
                     ) : isReady ? (
                         <iframe
                             src={resolvedNoVncUrl}

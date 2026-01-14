@@ -12,6 +12,7 @@ export interface BrowserSession {
 export interface AudioTarget {
     ip: string;
     port: number;
+    rtcpPort: number;
     payloadType: number;
     ssrc: number;
 }
