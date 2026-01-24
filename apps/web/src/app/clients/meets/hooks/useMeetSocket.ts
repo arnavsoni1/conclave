@@ -102,6 +102,7 @@ interface UseMeetSocketOptions {
     Device: typeof import("mediasoup-client").Device | null;
     io: typeof import("socket.io-client").io | null;
     isReady: boolean;
+    getCachedToken?: (roomId: string) => { token: string; sfuUrl: string } | null;
   };
 }
 
@@ -1081,11 +1082,16 @@ export function useMeetSocket({
               ? Promise.resolve({ io: prewarm.io })
               : import("socket.io-client");
 
-            const [{ token, sfuUrl }, { io }] = await Promise.all([
-              getJoinInfo(roomIdForJoin, sessionIdRef.current, {
+            const cachedToken = prewarm?.getCachedToken?.(roomIdForJoin);
+            const tokenPromise = cachedToken
+              ? Promise.resolve(cachedToken)
+              : getJoinInfo(roomIdForJoin, sessionIdRef.current, {
                 user,
                 isHost: isAdmin,
-              }),
+              });
+
+            const [{ token, sfuUrl }, { io }] = await Promise.all([
+              tokenPromise,
               socketIoPromise,
             ]);
 
