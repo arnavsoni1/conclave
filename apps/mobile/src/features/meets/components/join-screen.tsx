@@ -12,7 +12,6 @@ import {
   useWindowDimensions,
 } from "react-native";
 import Svg, { Path } from "react-native-svg";
-import { useSafeAreaInsets } from "react-native-safe-area-context";
 import Animated, { FadeIn, FadeInDown, FadeInUp } from "react-native-reanimated";
 import {
   ArrowLeft,
@@ -110,6 +109,7 @@ interface JoinScreenProps {
   onRoomIdChange: (value: string) => void;
   onJoinRoom: (roomId: string, options?: { isHost?: boolean }) => void;
   onIsAdminChange?: (isAdmin: boolean) => void;
+  user?: { id?: string; email?: string | null; name?: string | null } | null;
   onUserChange?: (
     user: { id?: string; email?: string | null; name?: string | null } | null
   ) => void;
@@ -133,6 +133,7 @@ export function JoinScreen({
   onRoomIdChange,
   onJoinRoom,
   onIsAdminChange,
+  user,
   onUserChange,
   isLoading,
   displayNameInput,
@@ -148,9 +149,12 @@ export function JoinScreen({
   onRetryMedia,
   forceJoinOnly = false,
 }: JoinScreenProps) {
-  const insets = useSafeAreaInsets();
   const { layout, isTablet, spacing, width: screenWidth } = useDeviceLayout();
-  const [phase, setPhase] = useState<Phase>(forceJoinOnly ? "join" : "welcome");
+  const isSignedInUser = Boolean(user && !user.id?.startsWith("guest-"));
+  const [phase, setPhase] = useState<Phase>(() => {
+    if (forceJoinOnly) return "join";
+    return isSignedInUser ? "join" : "welcome";
+  });
   const [guestName, setGuestName] = useState("");
   const [activeTab, setActiveTab] = useState<"new" | "join">(
     forceJoinOnly ? "join" : "new"
@@ -338,14 +342,22 @@ export function JoinScreen({
     onIsAdminChange?.(activeTab === "new");
   }, [activeTab, forceJoinOnly, onIsAdminChange, phase]);
 
+  useEffect(() => {
+    if (forceJoinOnly) return;
+    if (isSignedInUser) {
+      setPhase("join");
+    }
+  }, [forceJoinOnly, isSignedInUser]);
+
   if (phase === "welcome") {
     return (
       <DotGridBackground>
-        <SafeAreaView style={styles.flex1}>
+        <SafeAreaView style={styles.flex1} edges={["top", "bottom"]}>
           <ScrollView
             contentContainerStyle={styles.centerContent}
             showsVerticalScrollIndicator={false}
             keyboardShouldPersistTaps="handled"
+            contentInsetAdjustmentBehavior="never"
           >
             <Animated.View entering={FadeIn.duration(600)} style={styles.centerItems}>
               <Text
@@ -394,7 +406,7 @@ export function JoinScreen({
   if (phase === "auth") {
     return (
       <DotGridBackground>
-        <SafeAreaView style={styles.flex1}>
+        <SafeAreaView style={styles.flex1} edges={["top", "bottom"]}>
           <KeyboardAvoidingView
             behavior={Platform.OS === "ios" ? "padding" : "height"}
             style={styles.flex1}
@@ -403,6 +415,7 @@ export function JoinScreen({
               style={styles.flex1}
               contentContainerStyle={styles.authContent}
               keyboardShouldPersistTaps="handled"
+              contentInsetAdjustmentBehavior="never"
             >
               <Animated.View entering={FadeInDown.duration(400)} style={styles.authCard}>
                 <View style={styles.authHeader}>
@@ -544,7 +557,7 @@ export function JoinScreen({
 
   return (
     <DotGridBackground>
-      <SafeAreaView style={styles.flex1}>
+      <SafeAreaView style={styles.flex1} edges={["top", "bottom"]}>
         <KeyboardAvoidingView
           behavior={Platform.OS === "ios" ? "padding" : "height"}
           style={styles.flex1}
@@ -558,6 +571,7 @@ export function JoinScreen({
                 isIpadLayout && { maxWidth: maxContentWidth, alignSelf: "center" as const, width: "100%" as const },
               ]}
               keyboardShouldPersistTaps="handled"
+              contentInsetAdjustmentBehavior="never"
             >
               <View style={styles.joinContentInner}>
                 {meetError ? (
@@ -802,34 +816,27 @@ export function JoinScreen({
                         </Pressable>
                       </View>
                     )}
+
+                    {!forceJoinOnly && (
+                      <Pressable
+                        onPress={() => {
+                          haptic();
+                          setPhase("auth");
+                        }}
+                        style={styles.backButtonJoin}
+                      >
+                        <View style={styles.backRow}>
+                          <ArrowLeft size={14} color={COLORS.creamLighter} />
+                          <Text style={[styles.backButtonText, { color: COLORS.creamLighter }]}>
+                            back
+                          </Text>
+                        </View>
+                      </Pressable>
+                    )}
                   </Animated.View>
                 </View>
               </View>
             </ScrollView>
-
-            {!forceJoinOnly && (
-              <View
-                style={[
-                  styles.backDock,
-                  { paddingBottom: Math.max(12, insets.bottom) },
-                ]}
-              >
-                <Pressable
-                  onPress={() => {
-                    haptic();
-                    setPhase("auth");
-                  }}
-                  style={styles.backButtonJoin}
-                >
-                  <View style={styles.backRow}>
-                    <ArrowLeft size={14} color={COLORS.creamLighter} />
-                    <Text style={[styles.backButtonText, { color: COLORS.creamLighter }]}>
-                      back
-                    </Text>
-                  </View>
-                </Pressable>
-              </View>
-            )}
           </View>
         </KeyboardAvoidingView>
       </SafeAreaView>
@@ -1035,7 +1042,8 @@ const styles = StyleSheet.create({
   },
   joinContent: {
     paddingHorizontal: 20,
-    paddingVertical: 24,
+    paddingTop: 24,
+    paddingBottom: 0,
   },
   joinContentInner: {
     gap: 20,
@@ -1228,13 +1236,7 @@ const styles = StyleSheet.create({
   },
   backButtonJoin: {
     alignItems: "center",
-    marginTop: 8,
-  },
-  backDock: {
-    borderTopWidth: 1,
-    borderTopColor: "rgba(254, 252, 217, 0.06)",
-    paddingHorizontal: 20,
-    paddingTop: 8,
+    marginTop: 16,
   },
   // iPad-specific responsive styles
   joinContentTablet: {

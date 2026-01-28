@@ -34,6 +34,7 @@ import { useMeetSocket } from "../hooks/use-meet-socket";
 import { useMeetState } from "../hooks/use-meet-state";
 import type { Participant } from "../types";
 import { createMeetError } from "../utils";
+import { getCachedUser, setCachedUser } from "../auth-session";
 import { CallScreen } from "./call-screen";
 import { ChatPanel } from "./chat-panel";
 import { ErrorBanner } from "./error-banner";
@@ -123,14 +124,26 @@ export function MeetScreen() {
     }),
     [guestSessionId]
   );
+  const cachedUser = getCachedUser();
   const [currentUser, setCurrentUser] = useState<
     { id?: string; email?: string | null; name?: string | null } | null
-  >(guestIdentity);
+  >(cachedUser ?? guestIdentity);
   useEffect(() => {
     if (!currentUser || currentUser.id?.startsWith("guest-")) {
       setCurrentUser(guestIdentity);
     }
   }, [currentUser, guestIdentity]);
+  const handleUserChange = useCallback(
+    (nextUser: { id?: string; email?: string | null; name?: string | null } | null) => {
+      setCurrentUser(nextUser);
+      if (nextUser && !nextUser.id?.startsWith("guest-")) {
+        setCachedUser(nextUser);
+      } else {
+        setCachedUser(null);
+      }
+    },
+    []
+  );
   const user = currentUser ?? guestIdentity;
   const [isAdmin, setIsAdmin] = useState(false);
 
@@ -570,7 +583,8 @@ export function MeetScreen() {
           onRoomIdChange={setRoomId}
           onJoinRoom={handleJoin}
           onIsAdminChange={setIsAdmin}
-          onUserChange={setCurrentUser}
+          user={currentUser}
+          onUserChange={handleUserChange}
           isLoading={isLoading}
           displayNameInput={displayNameInput}
           onDisplayNameInputChange={setDisplayNameInput}
