@@ -29,6 +29,8 @@ interface UseMeetMediaOptions {
   setIsCameraOff: (value: boolean) => void;
   isScreenSharing: boolean;
   setIsScreenSharing: (value: boolean) => void;
+  setScreenShareStream: (stream: MediaStream | null) => void;
+  screenShareStreamRef: React.MutableRefObject<MediaStream | null>;
   activeScreenShareId: string | null;
   setActiveScreenShareId: (value: string | null) => void;
   localStream: MediaStream | null;
@@ -64,6 +66,8 @@ export function useMeetMedia({
   setIsCameraOff,
   isScreenSharing,
   setIsScreenSharing,
+  setScreenShareStream,
+  screenShareStreamRef,
   activeScreenShareId,
   setActiveScreenShareId,
   localStream,
@@ -125,7 +129,7 @@ export function useMeetMedia({
   const getDisplayMedia = useCallback(async () => {
     const display = mediaDevices?.getDisplayMedia;
     if (display) {
-      return display.call(mediaDevices, { video: true, audio: false });
+      return display.call(mediaDevices);
     }
     return null;
   }, []);
@@ -893,6 +897,13 @@ export function useMeetMedia({
         }
       }
       screenProducerRef.current = null;
+      if (screenShareStreamRef.current) {
+        screenShareStreamRef.current
+          .getTracks()
+          .forEach((track) => stopLocalTrack(track));
+        screenShareStreamRef.current = null;
+        setScreenShareStream(null);
+      }
       setIsScreenSharing(false);
       return;
     }
@@ -929,6 +940,13 @@ export function useMeetMedia({
         throw new Error("Screen sharing is not available on mobile yet.");
       }
       const track = stream.getVideoTracks()[0];
+      if (!track) {
+        stream.getTracks().forEach((streamTrack) => stopLocalTrack(streamTrack));
+        throw new Error("No screen video track available.");
+      }
+      track.enabled = true;
+      screenShareStreamRef.current = stream;
+      setScreenShareStream(stream);
       if (track && "contentHint" in track) {
         track.contentHint = "detail";
       }
@@ -952,9 +970,23 @@ export function useMeetMedia({
           producer.close();
         } catch {}
         screenProducerRef.current = null;
+        if (screenShareStreamRef.current) {
+          screenShareStreamRef.current
+            .getTracks()
+            .forEach((streamTrack) => stopLocalTrack(streamTrack));
+          screenShareStreamRef.current = null;
+          setScreenShareStream(null);
+        }
         setIsScreenSharing(false);
       };
     } catch (err) {
+      if (screenShareStreamRef.current) {
+        screenShareStreamRef.current
+          .getTracks()
+          .forEach((track) => stopLocalTrack(track));
+        screenShareStreamRef.current = null;
+        setScreenShareStream(null);
+      }
       if (
         err &&
         typeof err === "object" &&
@@ -988,7 +1020,10 @@ export function useMeetMedia({
     producerTransportRef,
     screenProducerRef,
     socketRef,
+    setScreenShareStream,
+    screenShareStreamRef,
     setMeetError,
+    stopLocalTrack,
   ]);
 
   useEffect(() => {

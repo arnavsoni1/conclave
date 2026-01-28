@@ -79,6 +79,8 @@ export function MeetScreen() {
     setIsCameraOff,
     isScreenSharing,
     setIsScreenSharing,
+    screenShareStream,
+    setScreenShareStream,
     isHandRaised,
     setIsHandRaised,
     isGhostMode,
@@ -182,6 +184,8 @@ export function MeetScreen() {
     setIsCameraOff,
     isScreenSharing,
     setIsScreenSharing,
+    setScreenShareStream,
+    screenShareStreamRef: refs.screenShareStreamRef,
     activeScreenShareId,
     setActiveScreenShareId,
     localStream,
@@ -491,10 +495,11 @@ export function MeetScreen() {
 
   const localScreenShareStream = useMemo(() => {
     if (!isScreenSharing) return null;
+    if (screenShareStream) return screenShareStream;
     const track = refs.screenProducerRef.current?.track;
     if (!track) return null;
     return new MediaStream([track]);
-  }, [isScreenSharing, refs.screenProducerRef]);
+  }, [isScreenSharing, screenShareStream, refs.screenProducerRef]);
 
   const { presentationStream, presenterName } = useMemo(() => {
     if (localScreenShareStream) {

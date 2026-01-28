@@ -13,6 +13,8 @@ export function useMeetState({ initialRoomId }: UseMeetStateOptions) {
   const [isMuted, setIsMuted] = useState(true);
   const [isCameraOff, setIsCameraOff] = useState(true);
   const [isScreenSharing, setIsScreenSharing] = useState(false);
+  const [screenShareStream, setScreenShareStream] =
+    useState<MediaStream | null>(null);
   const [isHandRaised, setIsHandRaised] = useState(false);
   const [isGhostMode, setIsGhostMode] = useState(false);
   const [activeScreenShareId, setActiveScreenShareId] = useState<
@@ -43,6 +45,8 @@ export function useMeetState({ initialRoomId }: UseMeetStateOptions) {
     setIsCameraOff,
     isScreenSharing,
     setIsScreenSharing,
+    screenShareStream,
+    setScreenShareStream,
     isHandRaised,
     setIsHandRaised,
     isGhostMode,
