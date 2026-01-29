@@ -20,6 +20,9 @@
     "version": "1.0.0",
     "ios": {
       "supportsTablet": true,
+      "associatedDomains": [
+        "applinks:conclave.acmvit.in"
+      ],
       "infoPlist": {
         "UIBackgroundModes": [
           "audio",
@@ -44,6 +47,22 @@
         "FOREGROUND_SERVICE_MICROPHONE",
         "BLUETOOTH_CONNECT",
         "MANAGE_OWN_CALLS"
+      ],
+      "intentFilters": [
+        {
+          "action": "VIEW",
+          "autoVerify": true,
+          "category": [
+            "BROWSABLE",
+            "DEFAULT"
+          ],
+          "data": [
+            {
+              "scheme": "https",
+              "host": "conclave.acmvit.in"
+            }
+          ]
+        }
       ],
       "package": "com.acmvit.conclave",
       "versionCode": 1
