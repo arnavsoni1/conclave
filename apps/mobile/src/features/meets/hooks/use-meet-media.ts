@@ -1357,6 +1357,21 @@ export function useMeetMedia({
   ]);
 
   useEffect(() => {
+    if (isScreenSharing) return;
+    if (!screenShareStreamRef.current) return;
+    screenShareStreamRef.current
+      .getTracks()
+      .forEach((track) => stopLocalTrack(track));
+    screenShareStreamRef.current = null;
+    setScreenShareStream(null);
+  }, [
+    isScreenSharing,
+    screenShareStreamRef,
+    setScreenShareStream,
+    stopLocalTrack,
+  ]);
+
+  useEffect(() => {
     if (connectionState === "joined") return;
     if (isScreenSharing) {
       stopScreenShare({ notify: false });

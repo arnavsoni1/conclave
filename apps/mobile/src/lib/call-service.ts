@@ -6,6 +6,12 @@ let callKeepReady = false;
 let currentCallId: string | null = null;
 let callKeepModule: typeof import("react-native-callkeep") | null = null;
 let foregroundServiceModule: unknown | null = null;
+let foregroundActionsCleanup: (() => void) | null = null;
+
+const FOREGROUND_NOTIFICATION_ID = 4242;
+const FOREGROUND_ACTION_LEAVE = "leave";
+const FOREGROUND_ACTION_OPEN = "open";
+const FOREGROUND_COLOR = "#F95F4A";
 
 const getCallKeep = () => {
   if (Platform.OS !== "ios") return null;
@@ -91,21 +97,25 @@ export function stopInCall() {
   InCallManager.stop();
 }
 
-export async function startForegroundCallService() {
+export async function startForegroundCallService(options?: { roomId?: string }) {
   const ForegroundService = getForegroundService();
   if (!ForegroundService) return;
   try {
     if (typeof ForegroundService.start !== "function") return;
-    await ForegroundService.start({
-      id: 4242,
-      title: "Conclave",
-      message: "Meeting in progress",
-      importance: "high",
-      visibility: "public",
-      vibration: false,
-    });
+    await ForegroundService.start(buildForegroundNotification(options));
   } catch (error) {
     console.warn("[ForegroundService] start failed", error);
+  }
+}
+
+export async function updateForegroundCallService(options?: { roomId?: string }) {
+  const ForegroundService = getForegroundService();
+  if (!ForegroundService) return;
+  try {
+    if (typeof ForegroundService.update !== "function") return;
+    await ForegroundService.update(buildForegroundNotification(options));
+  } catch (error) {
+    console.warn("[ForegroundService] update failed", error);
   }
 }
 
@@ -123,6 +133,40 @@ export async function stopForegroundCallService() {
   } catch (error) {
     console.warn("[ForegroundService] stop failed", error);
   }
+}
+
+export function registerForegroundCallServiceHandlers(handlers: {
+  onLeave?: () => void;
+  onOpen?: () => void;
+}) {
+  if (foregroundActionsCleanup) {
+    foregroundActionsCleanup();
+    foregroundActionsCleanup = null;
+  }
+  const ForegroundService = getForegroundService();
+  if (!ForegroundService || typeof ForegroundService.eventListener !== "function") {
+    return () => {};
+  }
+
+  foregroundActionsCleanup = ForegroundService.eventListener((event) => {
+    if (!event) return;
+    const action = event.button || event.main;
+    if (!action) return;
+    if (action === FOREGROUND_ACTION_LEAVE) {
+      handlers.onLeave?.();
+      return;
+    }
+    if (action === FOREGROUND_ACTION_OPEN) {
+      handlers.onOpen?.();
+    }
+  });
+
+  return () => {
+    if (foregroundActionsCleanup) {
+      foregroundActionsCleanup();
+      foregroundActionsCleanup = null;
+    }
+  };
 }
 
 export function setAudioRoute(route: "speaker" | "earpiece") {
@@ -155,5 +199,26 @@ export function registerCallKeepHandlers(onHangup: () => void) {
   return () => {
     endCallSub.remove();
     appStateSub.remove();
+  };
+}
+
+function buildForegroundNotification(options?: { roomId?: string }) {
+  const roomId = options?.roomId?.trim();
+  const message = roomId
+    ? `Meeting code: ${roomId}`
+    : "Meeting in progress";
+  return {
+    id: FOREGROUND_NOTIFICATION_ID,
+    title: "Conclave",
+    message,
+    importance: "high",
+    visibility: "public",
+    vibration: false,
+    color: FOREGROUND_COLOR,
+    ServiceType: "camera|microphone",
+    button: true,
+    buttonText: "Leave",
+    buttonOnPress: FOREGROUND_ACTION_LEAVE,
+    mainOnPress: FOREGROUND_ACTION_OPEN,
   };
 }

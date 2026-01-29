@@ -21,6 +21,8 @@ import {
   startInCall,
   stopForegroundCallService,
   stopInCall,
+  updateForegroundCallService,
+  registerForegroundCallServiceHandlers,
 } from "@/lib/call-service";
 import { ensureWebRTCGlobals } from "@/lib/webrtc";
 import { Text, View } from "@/tw";
@@ -177,6 +179,7 @@ export function MeetScreen({ initialRoomId }: { initialRoomId?: string } = {}) {
   );
   const user = currentUser ?? guestIdentity;
   const [isAdmin, setIsAdmin] = useState(false);
+  const [hasActiveCall, setHasActiveCall] = useState(false);
 
   const userKey = user?.email || user?.id || `guest-${guestSessionId}`;
   const userId = `${userKey}#${refs.sessionIdRef.current}`;
@@ -269,6 +272,27 @@ export function MeetScreen({ initialRoomId }: { initialRoomId?: string } = {}) {
     connectionState === "joining" ||
     connectionState === "reconnecting" ||
     connectionState === "waiting";
+
+  useEffect(() => {
+    if (isJoined) {
+      setHasActiveCall(true);
+    }
+  }, [isJoined]);
+
+  useEffect(() => {
+    if (
+      (connectionState === "disconnected" || connectionState === "error") &&
+      refs.intentionalDisconnectRef.current
+    ) {
+      setHasActiveCall(false);
+    }
+  }, [connectionState, refs.intentionalDisconnectRef]);
+
+  useEffect(() => {
+    if (meetError && !meetError.recoverable && !isJoined) {
+      setHasActiveCall(false);
+    }
+  }, [meetError, isJoined]);
 
   useEffect(() => {
     const subscription = AppState.addEventListener("change", (state) => {
@@ -473,6 +497,7 @@ export function MeetScreen({ initialRoomId }: { initialRoomId?: string } = {}) {
   stopScreenShareRef.current = stopScreenShare;
 
   const handleLeave = useCallback(() => {
+    setHasActiveCall(false);
     playNotificationSoundRef.current("leave");
     stopScreenShareRef.current({ notify: true });
     socketCleanupRef.current();
@@ -482,15 +507,19 @@ export function MeetScreen({ initialRoomId }: { initialRoomId?: string } = {}) {
 
   useEffect(() => {
     if (process.env.EXPO_OS === "web") return;
-    if (!isJoined) return;
+    if (!hasActiveCall) return;
     let cleanupHandlers: (() => void) | undefined;
     let activeCallId: string | null = null;
     let foregroundStarted = false;
+    let foregroundActionsCleanup: (() => void) | undefined;
 
     (async () => {
       if (Platform.OS === "android") {
-        await startForegroundCallService();
+        await startForegroundCallService({ roomId: roomIdRef.current || roomId });
         foregroundStarted = true;
+        foregroundActionsCleanup = registerForegroundCallServiceHandlers({
+          onLeave: handleLeave,
+        });
       }
       await ensureCallKeep();
       activeCallId = startCallSession(
@@ -506,6 +535,9 @@ export function MeetScreen({ initialRoomId }: { initialRoomId?: string } = {}) {
     })();
 
     return () => {
+      if (foregroundActionsCleanup) {
+        foregroundActionsCleanup();
+      }
       if (foregroundStarted) {
         void stopForegroundCallService();
       }
@@ -514,7 +546,13 @@ export function MeetScreen({ initialRoomId }: { initialRoomId?: string } = {}) {
       callIdRef.current = null;
       stopInCall();
     };
-  }, [isJoined, handleLeave]);
+  }, [hasActiveCall, handleLeave, roomId]);
+
+  useEffect(() => {
+    if (!hasActiveCall) return;
+    if (Platform.OS !== "android") return;
+    void updateForegroundCallService({ roomId });
+  }, [hasActiveCall, roomId]);
 
   const handleRetryPermissions = useCallback(async () => {
     if (Platform.OS === "ios") {
@@ -734,7 +772,7 @@ export function MeetScreen({ initialRoomId }: { initialRoomId?: string } = {}) {
         />
       ) : null}
 
-      {!isJoined ? (
+      {!isJoined && !hasActiveCall ? (
         <JoinScreen
           roomId={roomId}
           onRoomIdChange={setRoomId}
