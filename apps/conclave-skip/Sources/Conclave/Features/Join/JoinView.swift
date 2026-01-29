@@ -709,9 +709,9 @@ struct JoinView: View {
                         217.0 / 255.0,
                         0.08
                     )
-                    var y: Float = 0
+                    var y = Float(0.0)
                     while (y <= size.height) {
-                        var x: Float = 0
+                        var x = Float(0.0)
                         while (x <= size.width) {
                             drawCircle(dotColor, radius, androidx.compose.ui.geometry.Offset(x, y))
                             x += spacing
