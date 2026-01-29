@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect, useMemo, useState } from "react";
+import React, { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import * as AppleAuthentication from "expo-apple-authentication";
 import * as Google from "expo-auth-session/providers/google";
 import * as Haptics from "expo-haptics";
@@ -31,6 +31,7 @@ import {
 } from "../utils";
 import { useDeviceLayout } from "../hooks/use-device-layout";
 import { ErrorBanner } from "./error-banner";
+import { GlassPill } from "./glass-pill";
 import {
   Image,
   Pressable,
@@ -62,6 +63,8 @@ const textLineHeight = (fontSize: number, multiplier = 1.2) =>
   Math.round(fontSize * multiplier);
 
 type Phase = "welcome" | "auth" | "join";
+
+const isIos = Platform.OS === "ios";
 
 const GoogleIcon = ({ size = 18 }: { size?: number }) => (
   <Svg width={size} height={size} viewBox="0 0 24 24">
@@ -162,6 +165,8 @@ export function JoinScreen({
     null
   );
   const [isAppleAvailable, setIsAppleAvailable] = useState(false);
+  const [isEditingName, setIsEditingName] = useState(false);
+  const nameInputRef = useRef<React.ElementRef<typeof TextInput>>(null);
   const isAuthLoading = authProvider !== null;
   const googleRedirectUri = useMemo(() => {
     const clientId = Platform.select({
@@ -203,6 +208,17 @@ export function JoinScreen({
     onDisplayNameInputChange(guestName.trim());
     setPhase("join");
   }, [guestName, haptic, onDisplayNameInputChange]);
+
+  const handleNamePress = useCallback(() => {
+    setIsEditingName(true);
+    requestAnimationFrame(() => {
+      nameInputRef.current?.focus();
+    });
+  }, []);
+
+  const handleNameBlur = useCallback(() => {
+    setIsEditingName(false);
+  }, []);
 
   const completeSocialSignIn = useCallback(
     async (provider: "google" | "apple", idToken?: string, nonce?: string, accessToken?: string) => {
@@ -558,6 +574,209 @@ export function JoinScreen({
     );
   }
 
+  if (!isIpadLayout) {
+    return (
+      <DotGridBackground>
+        <SafeAreaView style={styles.flex1} edges={["top", "bottom"]}>
+          <KeyboardAvoidingView
+            behavior={Platform.OS === "ios" ? "padding" : "height"}
+            style={styles.flex1}
+          >
+            <View style={styles.flex1}>
+              {meetError ? (
+                <ErrorBanner
+                  meetError={meetError}
+                  onDismiss={onDismissMeetError}
+                  primaryActionLabel={onRetryMedia ? "Retry Permissions" : undefined}
+                  onPrimaryAction={onRetryMedia}
+                />
+              ) : null}
+
+              <View style={styles.fullPreviewWrap}>
+                <View style={styles.fullPreviewFrame}>
+                  {localStream && !isCameraOff ? (
+                    <RTCView
+                      streamURL={localStream.toURL()}
+                      style={styles.rtcView}
+                      mirror
+                    />
+                  ) : (
+                    <View style={styles.noVideoContainer}>
+                      <LinearGradient
+                        colors={["rgba(249, 95, 74, 0.2)", "rgba(255, 0, 122, 0.1)"]}
+                        style={styles.previewGradient}
+                      />
+                      <View style={styles.userAvatar}>
+                        <View style={styles.userAvatarBorder} />
+                        <Text style={[styles.userInitial, { color: COLORS.cream }]}>
+                          {userInitial}
+                        </Text>
+                      </View>
+                    </View>
+                  )}
+
+                  {isEditingName ? (
+                    <View style={styles.nameOverlay}>
+                      <TextInput
+                        ref={nameInputRef}
+                        style={styles.nameInput}
+                        value={displayNameInput}
+                        placeholder="Your name"
+                        placeholderTextColor="rgba(254, 252, 217, 0.6)"
+                        onChangeText={onDisplayNameInputChange}
+                        onBlur={handleNameBlur}
+                        returnKeyType="done"
+                        onSubmitEditing={handleNameBlur}
+                        autoCorrect={false}
+                      />
+                    </View>
+                  ) : (
+                    <Pressable onPress={handleNamePress} style={styles.nameOverlay}>
+                      <Text style={styles.overlayText}>
+                        {displayNameInput || "Guest"}
+                      </Text>
+                    </Pressable>
+                  )}
+
+                  <View style={styles.mediaControlsContainer}>
+                    <View style={styles.mediaControlsPill}>
+                      <Pressable
+                        onPress={() => {
+                          haptic();
+                          onToggleMute();
+                        }}
+                        style={[
+                          styles.mediaButton,
+                          isMuted && styles.mediaButtonActive,
+                        ]}
+                      >
+                        {isMuted ? (
+                          <MicOff size={18} color="#FFFFFF" />
+                        ) : (
+                          <Mic size={18} color="#FFFFFF" />
+                        )}
+                      </Pressable>
+                      <Pressable
+                        onPress={() => {
+                          haptic();
+                          onToggleCamera();
+                        }}
+                        style={[
+                          styles.mediaButton,
+                          isCameraOff && styles.mediaButtonActive,
+                        ]}
+                      >
+                        {isCameraOff ? (
+                          <VideoOff size={18} color="#FFFFFF" />
+                        ) : (
+                          <Video size={18} color="#FFFFFF" />
+                        )}
+                      </Pressable>
+                    </View>
+                  </View>
+
+                  <View style={styles.previewStatusOverlay}>
+                  
+                  </View>
+                </View>
+              </View>
+
+              <View style={styles.joinDock} pointerEvents="box-none">
+                <View style={styles.joinDockInner}>
+                  {!forceJoinOnly ? (
+                    <GlassPill style={styles.joinDockTabs}>
+                      <Pressable
+                        onPress={() => {
+                          haptic();
+                          setActiveTab("new");
+                        }}
+                        style={[
+                          styles.joinDockTab,
+                          activeTab === "new" && styles.joinDockTabActive,
+                        ]}
+                      >
+                        <Text
+                          style={[
+                            styles.joinDockTabText,
+                            { color: activeTab === "new" ? "#FFFFFF" : COLORS.creamLight },
+                          ]}
+                        >
+                          Create
+                        </Text>
+                      </Pressable>
+                      <Pressable
+                        onPress={() => {
+                          haptic();
+                          setActiveTab("join");
+                        }}
+                        style={[
+                          styles.joinDockTab,
+                          activeTab === "join" && styles.joinDockTabActive,
+                        ]}
+                      >
+                        <Text
+                          style={[
+                            styles.joinDockTabText,
+                            { color: activeTab === "join" ? "#FFFFFF" : COLORS.creamLight },
+                          ]}
+                        >
+                          Join
+                        </Text>
+                      </Pressable>
+                    </GlassPill>
+                  ) : null}
+
+                  {activeTab === "join" ? (
+                    <GlassPill style={styles.joinDockAction}>
+                      <View style={styles.joinDockInputRow}>
+                        <TextInput
+                          style={styles.joinDockInputField}
+                          placeholder="Room code or link"
+                          placeholderTextColor={COLORS.creamLighter}
+                          value={roomId}
+                          onChangeText={handleRoomChange}
+                          autoCapitalize="none"
+                          autoCorrect={false}
+                          returnKeyType="join"
+                          onSubmitEditing={handleJoin}
+                        />
+                        <Pressable
+                          onPress={handleJoin}
+                          disabled={!canJoin || isLoading}
+                          style={[
+                            styles.joinDockArrow,
+                            (!canJoin || isLoading) && styles.joinDockButtonDisabled,
+                          ]}
+                        >
+                          <ArrowRight size={18} color="#FFFFFF" />
+                        </Pressable>
+                      </View>
+                    </GlassPill>
+                  ) : (
+                    <GlassPill style={styles.joinDockAction}>
+                      <Pressable
+                        onPress={handleCreateRoom}
+                        disabled={isLoading}
+                        style={[
+                          styles.joinDockButton,
+                          isLoading && styles.joinDockButtonDisabled,
+                        ]}
+                      >
+                        <Text style={styles.joinDockButtonText}>
+                          {isLoading ? "Starting..." : "Start Meeting"}
+                        </Text>
+                      </Pressable>
+                    </GlassPill>
+                  )}
+                </View>
+              </View>
+            </View>
+          </KeyboardAvoidingView>
+        </SafeAreaView>
+      </DotGridBackground>
+    );
+  }
+
   // iPad-specific layout calculations
   const maxContentWidth = isIpadLayout ? 1200 : undefined;
   const videoPreviewFlex = isIpadLayout ? 1.15 : undefined;
@@ -599,14 +818,18 @@ export function JoinScreen({
                     <Text style={[styles.sectionLabel, { color: COLORS.creamLight }]}>
                       Preview
                     </Text>
-                    <View style={[
-                      styles.videoPreview,
-                      {
-                        backgroundColor: "#0d0e0d",
-                        borderColor: "rgba(254, 252, 217, 0.1)",
-                      },
-                      isIpadLayout && styles.videoPreviewTablet,
-                    ]}>
+                    <View
+                      style={[
+                        styles.videoPreview,
+                        {
+                          backgroundColor: isIos
+                            ? "rgba(13, 14, 13, 0.35)"
+                            : "#0d0e0d",
+                          borderColor: "rgba(254, 252, 217, 0.1)",
+                        },
+                        isIpadLayout && styles.videoPreviewTablet,
+                      ]}
+                    >
                       {localStream && !isCameraOff ? (
                         <RTCView
                           streamURL={localStream.toURL()}
@@ -628,11 +851,28 @@ export function JoinScreen({
                         </View>
                       )}
 
-                      <View style={styles.nameOverlay}>
-                        <Text style={styles.overlayText}>
-                          {displayNameInput || "Guest"}
-                        </Text>
-                      </View>
+                  {isEditingName ? (
+                    <View style={styles.nameOverlay}>
+                      <TextInput
+                        ref={nameInputRef}
+                        style={styles.nameInput}
+                        value={displayNameInput}
+                        placeholder="Your name"
+                        placeholderTextColor="rgba(254, 252, 217, 0.6)"
+                        onChangeText={onDisplayNameInputChange}
+                        onBlur={handleNameBlur}
+                        returnKeyType="done"
+                        onSubmitEditing={handleNameBlur}
+                        autoCorrect={false}
+                      />
+                    </View>
+                  ) : (
+                    <Pressable onPress={handleNamePress} style={styles.nameOverlay}>
+                      <Text style={styles.overlayText}>
+                        {displayNameInput || "Guest"}
+                      </Text>
+                    </Pressable>
+                  )}
 
                       <View style={styles.mediaControlsContainer}>
                         <View style={styles.mediaControlsPill}>
@@ -671,44 +911,20 @@ export function JoinScreen({
                         </View>
                       </View>
                     </View>
-
-                    <View style={styles.preflightRow}>
-                      <Text style={[styles.preflightLabel, { color: COLORS.creamLight }]}>
-                        Preflight
-                      </Text>
-                      <View style={[styles.statusPill, { borderColor: "rgba(254, 252, 217, 0.1)" }]}>
-                          <View
-                            style={[
-                              styles.statusDot,
-                              { backgroundColor: !isMuted ? "#34d399" : COLORS.primaryOrange },
-                            ]}
-                        />
-                        <Text style={styles.statusText}>
-                          Mic {!isMuted ? "On" : "Off"}
-                        </Text>
-                      </View>
-                      <View style={[styles.statusPill, { borderColor: "rgba(254, 252, 217, 0.1)" }]}>
-                          <View
-                            style={[
-                              styles.statusDot,
-                              { backgroundColor: !isCameraOff ? "#34d399" : COLORS.primaryOrange },
-                            ]}
-                        />
-                        <Text style={styles.statusText}>
-                          Camera {!isCameraOff ? "On" : "Off"}
-                        </Text>
-                      </View>
-                    </View>
                   </Animated.View>
 
                   <Animated.View
                     entering={FadeInUp.delay(100).duration(400)}
                     style={[
-                      styles.joinCard,
-                      { borderColor: COLORS.creamDim },
                       isIpadLayout && { flex: joinCardFlex, marginTop: 0, marginLeft: spacing.lg },
                     ]}
                   >
+                    <View
+                      style={[
+                        styles.joinCard,
+                        { borderColor: COLORS.creamDim },
+                      ]}
+                    >
                     {!forceJoinOnly && (
                       <View style={[styles.tabContainer, { backgroundColor: COLORS.surface }]}>
                         <Pressable
@@ -843,6 +1059,7 @@ export function JoinScreen({
                         </View>
                       </Pressable>
                     )}
+                    </View>
                   </Animated.View>
                 </View>
               </View>
@@ -857,6 +1074,111 @@ export function JoinScreen({
 const styles = StyleSheet.create({
   flex1: {
     flex: 1,
+  },
+  fullPreviewWrap: {
+    flex: 1,
+    paddingHorizontal: 16,
+    paddingTop: 12,
+    paddingBottom: 140,
+  },
+  fullPreviewFrame: {
+    flex: 1,
+    borderRadius: 28,
+    overflow: "hidden",
+    backgroundColor: "#0d0e0d",
+    borderWidth: 1,
+    borderColor: "rgba(254, 252, 217, 0.1)",
+  },
+  previewStatusOverlay: {
+    position: "absolute",
+    bottom: 16,
+    left: 16,
+  },
+  preflightRowOverlay: {
+    marginTop: 0,
+  },
+  joinDock: {
+    position: "absolute",
+    left: 0,
+    right: 0,
+    bottom: 0,
+    paddingHorizontal: 16,
+    paddingBottom: 12,
+  },
+  joinDockInner: {
+    gap: 12,
+  },
+  joinDockTabs: {
+    flexDirection: "row",
+    padding: 6,
+    borderRadius: 999,
+    borderWidth: 1,
+    borderColor: "rgba(254, 252, 217, 0.12)",
+    backgroundColor: isIos ? "rgba(12, 12, 12, 0.4)" : "rgba(12, 12, 12, 0.8)",
+  },
+  joinDockTab: {
+    flex: 1,
+    paddingVertical: 10,
+    borderRadius: 999,
+    alignItems: "center",
+  },
+  joinDockTabActive: {
+    backgroundColor: "rgba(249, 95, 74, 0.85)",
+  },
+  joinDockTabText: {
+    fontSize: 12,
+    lineHeight: textLineHeight(12, 1.2),
+    letterSpacing: 1,
+    textTransform: "uppercase",
+    fontFamily: "PolySans-Mono",
+  },
+  joinDockInputRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 8,
+    height: "100%",
+    paddingHorizontal: 14,
+  },
+  joinDockInputField: {
+    flex: 1,
+    color: COLORS.cream,
+    fontSize: 14,
+    fontFamily: "PolySans-Regular",
+    includeFontPadding: false,
+  },
+  joinDockArrow: {
+    width: 36,
+    height: 36,
+    borderRadius: 18,
+    alignItems: "center",
+    justifyContent: "center",
+    backgroundColor: "rgba(249, 95, 74, 0.85)",
+  },
+  joinDockAction: {
+    borderRadius: 999,
+    borderWidth: 1,
+    borderColor: "rgba(254, 252, 217, 0.12)",
+    backgroundColor: isIos ? "rgba(20, 20, 20, 0.35)" : "rgba(20, 20, 20, 0.85)",
+    height: 52,
+  },
+  joinDockButton: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "center",
+    gap: 8,
+    height: "100%",
+    paddingHorizontal: 18,
+    borderRadius: 999,
+  },
+  joinDockButtonDisabled: {
+    opacity: 0.6,
+  },
+  joinDockButtonText: {
+    fontSize: 14,
+    lineHeight: textLineHeight(14, 1.25),
+    fontWeight: "600",
+    color: "#FFFFFF",
+    fontFamily: "PolySans-Regular",
   },
   centerContent: {
     flex: 1,
@@ -1143,16 +1465,25 @@ const styles = StyleSheet.create({
     position: "absolute",
     top: 12,
     left: 12,
-    paddingHorizontal: 10,
-    paddingVertical: 4,
+    paddingHorizontal: 12,
+    paddingVertical: 6,
     borderRadius: 20,
-    backgroundColor: "rgba(0, 0, 0, 0.5)",
+    backgroundColor: "rgba(0, 0, 0, 0.7)",
+    borderWidth: 1,
+    borderColor: "rgba(254, 252, 217, 0.2)",
   },
   overlayText: {
     fontSize: 12,
     lineHeight: textLineHeight(12, 1.25),
-    color: "rgba(254, 252, 217, 0.7)",
+    color: "rgba(254, 252, 217, 0.9)",
     fontFamily: "PolySans-Mono",
+  },
+  nameInput: {
+    minWidth: 96,
+    color: "rgba(254, 252, 217, 0.95)",
+    fontSize: 12,
+    fontFamily: "PolySans-Mono",
+    includeFontPadding: false,
   },
   mediaControlsContainer: {
     position: "absolute",
@@ -1206,6 +1537,7 @@ const styles = StyleSheet.create({
     borderRadius: 20,
     backgroundColor: "rgba(0, 0, 0, 0.4)",
     borderWidth: 1,
+    borderColor: "rgba(254, 252, 217, 0.1)",
   },
   statusDot: {
     width: 6,
@@ -1221,7 +1553,9 @@ const styles = StyleSheet.create({
   joinCard: {
     borderRadius: 16,
     padding: 20,
-    backgroundColor: "rgba(20, 20, 20, 0.8)",
+    backgroundColor: isIos
+      ? "rgba(20, 20, 20, 0.35)"
+      : "rgba(20, 20, 20, 0.8)",
     borderWidth: 1,
   },
   tabContainer: {
