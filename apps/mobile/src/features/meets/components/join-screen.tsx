@@ -7,6 +7,7 @@ import { RTCView } from "react-native-webrtc";
 import {
   ActivityIndicator,
   KeyboardAvoidingView,
+  PanResponder,
   Platform,
   StyleSheet,
   useWindowDimensions,
@@ -168,6 +169,32 @@ export function JoinScreen({
   const [isEditingName, setIsEditingName] = useState(false);
   const nameInputRef = useRef<React.ElementRef<typeof TextInput>>(null);
   const isAuthLoading = authProvider !== null;
+  const phases = useMemo<Phase[]>(
+    () => (forceJoinOnly ? ["join"] : ["welcome", "auth", "join"]),
+    [forceJoinOnly]
+  );
+  const panResponder = useMemo(() => {
+    if (phases.length <= 1) {
+      return null;
+    }
+
+    const index = phases.indexOf(phase);
+    return PanResponder.create({
+      onMoveShouldSetPanResponder: (_evt, gesture) => {
+        const { dx, dy } = gesture;
+        return Math.abs(dx) > Math.abs(dy) && Math.abs(dx) > 12;
+      },
+      onPanResponderRelease: (_evt, gesture) => {
+        const { dx, vx } = gesture;
+        if (index < 0) return;
+        if (dx <= -60 && vx <= -0.2 && index < phases.length - 1) {
+          setPhase(phases[index + 1]);
+        } else if (dx >= 60 && vx >= 0.2 && index > 0) {
+          setPhase(phases[index - 1]);
+        }
+      },
+    });
+  }, [phase, phases]);
   const googleRedirectUri = useMemo(() => {
     const clientId = Platform.select({
       ios: googleClientConfig.iosClientId,
@@ -368,51 +395,53 @@ export function JoinScreen({
     return (
       <DotGridBackground>
         <SafeAreaView style={styles.flex1} edges={["top", "bottom"]}>
-          <ScrollView
-            contentContainerStyle={styles.centerContent}
-            showsVerticalScrollIndicator={false}
-            keyboardShouldPersistTaps="handled"
-            contentInsetAdjustmentBehavior="never"
-          >
-            <Animated.View entering={FadeIn.duration(600)} style={styles.centerItems}>
-              <Text
-                numberOfLines={1}
-                ellipsizeMode="clip"
-                style={[styles.welcomeLabel, { color: COLORS.creamLight }]}
-              >
-                welcome to
-              </Text>
+          <View style={styles.flex1} {...(panResponder?.panHandlers ?? {})}>
+            <ScrollView
+              contentContainerStyle={styles.centerContent}
+              showsVerticalScrollIndicator={false}
+              keyboardShouldPersistTaps="handled"
+              contentInsetAdjustmentBehavior="never"
+            >
+              <Animated.View entering={FadeIn.duration(600)} style={styles.centerItems}>
+                <Text
+                  numberOfLines={1}
+                  ellipsizeMode="clip"
+                  style={[styles.welcomeLabel, { color: COLORS.creamLight }]}
+                >
+                  welcome to
+                </Text>
 
-              <View style={styles.brandingRow}>
-                <Text style={[styles.bracket, { color: COLORS.orangeLight }]}>
-                  [
-                </Text>
-                <Text style={[styles.brandTitle, { color: COLORS.cream }]}>
-                  c0nclav3
-                </Text>
-                <Text style={[styles.bracket, { color: COLORS.orangeLight }]}>
-                  ]
-                </Text>
-              </View>
+                <View style={styles.brandingRow}>
+                  <Text style={[styles.bracket, { color: COLORS.orangeLight }]}>
+                    [
+                  </Text>
+                  <Text style={[styles.brandTitle, { color: COLORS.cream }]}>
+                    c0nclav3
+                  </Text>
+                  <Text style={[styles.bracket, { color: COLORS.orangeLight }]}>
+                    ]
+                  </Text>
+                </View>
 
-              <Text style={[styles.tagline, { color: COLORS.creamLighter }]}>
-                ACM-VIT's in-house video conferencing platform
-              </Text>
-
-              <Pressable
-                onPress={() => {
-                  haptic();
-                  setPhase("auth");
-                }}
-                style={[styles.primaryButton, { backgroundColor: COLORS.primaryOrange }]}
-              >
-                <Text numberOfLines={1} ellipsizeMode="clip" style={styles.primaryButtonText}>
-                  LET'S GO
+                <Text style={[styles.tagline, { color: COLORS.creamLighter }]}>
+                  ACM-VIT's in-house video conferencing platform
                 </Text>
-                <ArrowRight size={16} color="#FFFFFF" />
-              </Pressable>
-            </Animated.View>
-          </ScrollView>
+
+                <Pressable
+                  onPress={() => {
+                    haptic();
+                    setPhase("auth");
+                  }}
+                  style={[styles.primaryButton, { backgroundColor: COLORS.primaryOrange }]}
+                >
+                  <Text numberOfLines={1} ellipsizeMode="clip" style={styles.primaryButtonText}>
+                    LET'S GO
+                  </Text>
+                  <ArrowRight size={16} color="#FFFFFF" />
+                </Pressable>
+              </Animated.View>
+            </ScrollView>
+          </View>
         </SafeAreaView>
       </DotGridBackground>
     );
@@ -426,40 +455,41 @@ export function JoinScreen({
             behavior={Platform.OS === "ios" ? "padding" : "height"}
             style={styles.flex1}
           >
-            <ScrollView
-              style={styles.flex1}
-              contentContainerStyle={[
-                styles.authContent,
-                isIpadLayout && styles.authContentTablet,
-              ]}
-              keyboardShouldPersistTaps="handled"
-              contentInsetAdjustmentBehavior="never"
-            >
-              <Animated.View
-                entering={FadeInDown.duration(400)}
-                style={[styles.authCard, isIpadLayout && styles.authCardTablet]}
+            <View style={styles.flex1} {...(panResponder?.panHandlers ?? {})}>
+              <ScrollView
+                style={styles.flex1}
+                contentContainerStyle={[
+                  styles.authContent,
+                  isIpadLayout && styles.authContentTablet,
+                ]}
+                keyboardShouldPersistTaps="handled"
+                contentInsetAdjustmentBehavior="never"
               >
-                <View style={styles.authHeader}>
-                  <Text style={[styles.authTitle, { color: COLORS.cream }]}>
-                    Join
-                  </Text>
-                  <Text style={[styles.authSubtitle, { color: COLORS.creamLight }]}>
-                    choose how to continue
-                  </Text>
-                </View>
+                <Animated.View
+                  entering={FadeInDown.duration(400)}
+                  style={[styles.authCard, isIpadLayout && styles.authCardTablet]}
+                >
+                  <View style={styles.authHeader}>
+                    <Text style={[styles.authTitle, { color: COLORS.cream }]}>
+                      Join
+                    </Text>
+                    <Text style={[styles.authSubtitle, { color: COLORS.creamLight }]}>
+                      choose how to continue
+                    </Text>
+                  </View>
 
-                <View style={styles.socialGroup}>
-                  <Pressable
-                    onPress={handleGoogleSignIn}
-                    disabled={!googleRequest || isAuthLoading}
-                    style={({ pressed }) => [
-                      styles.socialButton,
-                      pressed && styles.socialButtonPressed,
-                      (isAuthLoading || !googleRequest) && styles.socialButtonDisabled,
-                    ]}
-                  >
-                    <View style={styles.socialButtonContent}>
-                      <View style={styles.socialIcon}>
+                  <View style={styles.socialGroup}>
+                  <GlassPill style={styles.socialPill}>
+                    <Pressable
+                      onPress={handleGoogleSignIn}
+                      disabled={!googleRequest || isAuthLoading}
+                      style={({ pressed }) => [
+                        styles.socialButton,
+                        pressed && styles.socialButtonPressed,
+                        (isAuthLoading || !googleRequest) && styles.socialButtonDisabled,
+                      ]}
+                    >
+                      <View style={styles.socialIconLeft}>
                         {authProvider === "google" ? (
                           <ActivityIndicator size="small" color={COLORS.cream} />
                         ) : (
@@ -467,21 +497,21 @@ export function JoinScreen({
                         )}
                       </View>
                       <Text style={styles.socialButtonText}>Continue with Google</Text>
-                    </View>
-                  </Pressable>
+                    </Pressable>
+                  </GlassPill>
 
                   {Platform.OS === "ios" && isAppleAvailable ? (
-                    <Pressable
-                      onPress={handleAppleSignIn}
-                      disabled={isAuthLoading}
-                      style={({ pressed }) => [
-                        styles.socialButton,
-                        pressed && styles.socialButtonPressed,
-                        isAuthLoading && styles.socialButtonDisabled,
-                      ]}
-                    >
-                      <View style={styles.socialButtonContent}>
-                        <View style={styles.socialIcon}>
+                    <GlassPill style={styles.socialPill}>
+                      <Pressable
+                        onPress={handleAppleSignIn}
+                        disabled={isAuthLoading}
+                        style={({ pressed }) => [
+                          styles.socialButton,
+                          pressed && styles.socialButtonPressed,
+                          isAuthLoading && styles.socialButtonDisabled,
+                        ]}
+                      >
+                        <View style={styles.socialIconLeft}>
                           {authProvider === "apple" ? (
                             <ActivityIndicator size="small" color={COLORS.cream} />
                           ) : (
@@ -493,81 +523,78 @@ export function JoinScreen({
                           )}
                         </View>
                         <Text style={styles.socialButtonText}>Continue with Apple</Text>
-                      </View>
-                    </Pressable>
+                      </Pressable>
+                    </GlassPill>
                   ) : null}
-                </View>
+                  </View>
 
-                <View style={styles.dividerRow}>
-                  <View style={[styles.dividerLine, { backgroundColor: COLORS.creamDim }]} />
-                  <Text style={[styles.dividerText, { color: COLORS.creamLighter }]}>
-                    or
-                  </Text>
-                  <View style={[styles.dividerLine, { backgroundColor: COLORS.creamDim }]} />
-                </View>
+                  <View style={styles.dividerRow}>
+                    <View style={[styles.dividerLine, { backgroundColor: COLORS.creamDim }]} />
+                    <Text style={[styles.dividerText, { color: COLORS.creamLighter }]}>
+                      or
+                    </Text>
+                    <View style={[styles.dividerLine, { backgroundColor: COLORS.creamDim }]} />
+                  </View>
 
-                <View style={styles.inputGroup}>
-                  <Text style={[styles.inputLabel, { color: COLORS.creamLight }]}>
-                    Your name
-                  </Text>
-                  <TextInput
-                    style={[styles.textInput, {
-                      backgroundColor: COLORS.surface,
-                      borderColor: COLORS.creamDim,
-                      color: COLORS.cream,
-                    }]}
-                    placeholder="Enter your name"
-                    placeholderTextColor={COLORS.creamLighter}
-                    value={guestName}
-                    onChangeText={setGuestName}
-                    autoCapitalize="words"
-                    returnKeyType="done"
-                    onSubmitEditing={handleContinueAsGuest}
-                  />
+                  <View style={styles.inputGroup}>
+                    <Text style={[styles.inputLabel, { color: COLORS.creamLight }]}>
+                      Your name
+                    </Text>
+                    <GlassPill style={styles.authInputPill}>
+                      <TextInput
+                        style={styles.authTextInput}
+                        placeholder="Enter your name"
+                        placeholderTextColor={COLORS.creamLighter}
+                        value={guestName}
+                        onChangeText={setGuestName}
+                        autoCapitalize="words"
+                        returnKeyType="done"
+                        onSubmitEditing={handleContinueAsGuest}
+                      />
+                    </GlassPill>
+
+                    <GlassPill style={styles.authActionPill}>
+                      <Pressable
+                        onPress={handleContinueAsGuest}
+                        disabled={!guestName.trim()}
+                        style={[
+                          styles.secondaryButton,
+                          !guestName.trim() && styles.secondaryButtonDisabled,
+                        ]}
+                      >
+                        <Text
+                          style={[
+                            styles.secondaryButtonText,
+                            {
+                              color: guestName.trim()
+                                ? "#FFFFFF"
+                                : COLORS.creamLighter,
+                            },
+                          ]}
+                        >
+                          Continue as Guest
+                        </Text>
+                      </Pressable>
+                    </GlassPill>
+                  </View>
 
                   <Pressable
-                    onPress={handleContinueAsGuest}
-                    disabled={!guestName.trim()}
-                    style={[
-                      styles.secondaryButton,
-                      {
-                        backgroundColor: guestName.trim()
-                          ? COLORS.primaryOrange
-                          : COLORS.creamDim,
-                      },
-                    ]}
+                    onPress={() => {
+                      haptic();
+                      setPhase("welcome");
+                    }}
+                    style={styles.backButton}
                   >
-                    <Text
-                      style={[
-                        styles.secondaryButtonText,
-                        {
-                          color: guestName.trim()
-                            ? "#FFFFFF"
-                            : COLORS.creamLighter,
-                        },
-                      ]}
-                    >
-                      Continue as Guest
-                    </Text>
+                    <View style={styles.backRow}>
+                      <ArrowLeft size={14} color={COLORS.creamLighter} />
+                      <Text style={[styles.backButtonText, { color: COLORS.creamLighter }]}>
+                        back
+                      </Text>
+                    </View>
                   </Pressable>
-                </View>
-
-                <Pressable
-                  onPress={() => {
-                    haptic();
-                    setPhase("welcome");
-                  }}
-                  style={styles.backButton}
-                >
-                  <View style={styles.backRow}>
-                    <ArrowLeft size={14} color={COLORS.creamLighter} />
-                    <Text style={[styles.backButtonText, { color: COLORS.creamLighter }]}>
-                      back
-                    </Text>
-                  </View>
-                </Pressable>
-              </Animated.View>
-            </ScrollView>
+                </Animated.View>
+              </ScrollView>
+            </View>
           </KeyboardAvoidingView>
         </SafeAreaView>
       </DotGridBackground>
@@ -582,7 +609,7 @@ export function JoinScreen({
             behavior={Platform.OS === "ios" ? "padding" : "height"}
             style={styles.flex1}
           >
-            <View style={styles.flex1}>
+            <View style={styles.flex1} {...(panResponder?.panHandlers ?? {})}>
               {meetError ? (
                 <ErrorBanner
                   meetError={meetError}
@@ -789,7 +816,7 @@ export function JoinScreen({
           behavior={Platform.OS === "ios" ? "padding" : "height"}
           style={styles.flex1}
         >
-          <View style={styles.flex1}>
+          <View style={styles.flex1} {...(panResponder?.panHandlers ?? {})}>
             <ScrollView
               style={styles.flex1}
               contentContainerStyle={[
@@ -1256,15 +1283,19 @@ const styles = StyleSheet.create({
   },
   authCard: {
     width: "100%",
+    alignSelf: "center",
+    maxWidth: 420,
+    padding: 0,
+    borderRadius: 0,
+    borderWidth: 0,
+    backgroundColor: "transparent",
   },
   authCardTablet: {
     maxWidth: 520,
-    alignSelf: "center",
-    padding: 24,
-    borderRadius: 16,
-    borderWidth: 1,
-    borderColor: "rgba(254, 252, 217, 0.12)",
-    backgroundColor: "rgba(20, 20, 20, 0.8)",
+    padding: 0,
+    borderRadius: 0,
+    borderWidth: 0,
+    backgroundColor: "transparent",
   },
   authHeader: {
     alignItems: "center",
@@ -1288,35 +1319,37 @@ const styles = StyleSheet.create({
     gap: 12,
     marginBottom: 20,
   },
+  socialPill: {
+    alignSelf: "center",
+    width: "100%",
+    maxWidth: 360,
+    height: 54,
+    borderRadius: 999,
+    borderWidth: 1,
+    borderColor: "rgba(254, 252, 217, 0.12)",
+    backgroundColor: isIos ? "rgba(20, 20, 20, 0.35)" : "rgba(20, 20, 20, 0.85)",
+  },
   socialButton: {
     width: "100%",
     flexDirection: "row",
     alignItems: "center",
-    paddingVertical: 12,
-    paddingHorizontal: 16,
-    minHeight: 48,
-    borderRadius: 8,
-    borderWidth: 1,
-    borderColor: "rgba(254, 252, 217, 0.2)",
-    backgroundColor: "rgba(26, 26, 26, 0.9)",
+    height: "100%",
+    paddingVertical: 0,
+    paddingHorizontal: 18,
+    borderRadius: 999,
     justifyContent: "center",
   },
   socialButtonPressed: {
-    borderColor: "rgba(254, 252, 217, 0.3)",
-    backgroundColor: "rgba(26, 26, 26, 0.8)",
+    opacity: 0.85,
   },
   socialButtonDisabled: {
     opacity: 0.5,
   },
-  socialButtonContent: {
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "center",
-    gap: 12,
-  },
-  socialIcon: {
-    width: 20,
-    height: 20,
+  socialIconLeft: {
+    position: "absolute",
+    left: 80,
+    width: 24,
+    height: 50,
     alignItems: "center",
     justifyContent: "center",
   },
@@ -1333,13 +1366,18 @@ const styles = StyleSheet.create({
     fontFamily: "PolySans-Mono",
   },
   socialButtonText: {
-    fontSize: 13,
-    fontWeight: "500",
+    fontSize: 14,
+    fontWeight: "600",
     letterSpacing: -0.2,
     fontFamily: "PolySans-Regular",
     color: COLORS.cream,
     lineHeight: textLineHeight(13, 1.25),
     includeFontPadding: false,
+    paddingLeft: 50,
+    width: "100%",
+    textAlign: "center",
+    marginTop: 5,
+    paddingTop: 13,
   },
   dividerRow: {
     flexDirection: "row",
@@ -1361,6 +1399,26 @@ const styles = StyleSheet.create({
   inputGroup: {
     gap: 12,
   },
+  authInputPill: {
+    borderRadius: 18,
+    borderWidth: 1,
+    borderColor: "rgba(254, 252, 217, 0.12)",
+    backgroundColor: isIos ? "rgba(20, 20, 20, 0.35)" : "rgba(20, 20, 20, 0.85)",
+    paddingHorizontal: 14,
+    paddingVertical: 10,
+  },
+  authTextInput: {
+    color: COLORS.cream,
+    fontSize: 14,
+    fontFamily: "PolySans-Regular",
+    includeFontPadding: false,
+  },
+  authActionPill: {
+    borderRadius: 999,
+    borderWidth: 1,
+    borderColor: "rgba(254, 252, 217, 0.12)",
+    backgroundColor: isIos ? "rgba(20, 20, 20, 0.35)" : "rgba(20, 20, 20, 0.85)",
+  },
   inputLabel: {
     fontSize: 12,
     lineHeight: textLineHeight(12, 1.25),
@@ -1379,9 +1437,13 @@ const styles = StyleSheet.create({
   },
   secondaryButton: {
     width: "100%",
-    paddingVertical: 16,
-    borderRadius: 12,
+    paddingVertical: 14,
+    borderRadius: 999,
     alignItems: "center",
+    backgroundColor: COLORS.primaryOrange,
+  },
+  secondaryButtonDisabled: {
+    backgroundColor: "rgba(254, 252, 217, 0.1)",
   },
   secondaryButtonText: {
     fontSize: 15,
