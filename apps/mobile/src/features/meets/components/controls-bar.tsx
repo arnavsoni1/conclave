@@ -208,13 +208,12 @@ export function ControlsBar({
   const { isTablet, touchTargetSize } = useDeviceLayout();
   const [showReactionPicker, setShowReactionPicker] = useState(false);
 
-  // On iPad, never use compact mode - show all controls
   const isCompact = !isTablet && availableWidth < 420;
   const pillMaxWidth = isCompact
-    ? Math.min(360, availableWidth - 24)
+    ? Math.min(360, Math.round(availableWidth * 0.9))
     : isTablet
       ? Math.min(860, availableWidth - 60)
-      : availableWidth - 24;
+      : Math.round(availableWidth * 0.9);
 
   const buttonSize = Math.round(
     Math.max(touchTargetSize, TOUCH_TARGETS.MIN) * (isTablet ? 1.24 : 1.18)
