@@ -43,6 +43,7 @@ import { useMeetReactions } from "../hooks/use-meet-reactions";
 import { useMeetRefs } from "../hooks/use-meet-refs";
 import { useMeetSocket } from "../hooks/use-meet-socket";
 import { useMeetState } from "../hooks/use-meet-state";
+import { useMeetTts } from "../hooks/use-meet-tts";
 import { useDeviceLayout } from "../hooks/use-device-layout";
 import type { Participant } from "../types";
 import { createMeetError } from "../utils";
@@ -226,6 +227,8 @@ export function MeetScreen({ initialRoomId }: { initialRoomId?: string } = {}) {
     reactionAssets: reactionAssetList.slice(),
   });
 
+  const { ttsSpeakerId, handleTtsMessage } = useMeetTts();
+
   const {
     mediaState,
     showPermissionHint,
@@ -275,6 +278,7 @@ export function MeetScreen({ initialRoomId }: { initialRoomId?: string } = {}) {
   });
 
   const isJoined = connectionState === "joined";
+  const effectiveActiveSpeakerId = ttsSpeakerId ?? activeSpeakerId;
   const isLoading =
     connectionState === "connecting" ||
     connectionState === "joining" ||
@@ -421,6 +425,7 @@ export function MeetScreen({ initialRoomId }: { initialRoomId?: string } = {}) {
     onToggleMute: toggleMute,
     onToggleCamera: toggleCamera,
     onSetHandRaised: setHandRaisedState,
+    onTtsMessage: handleTtsMessage,
   });
 
   const socket = useMeetSocket({
@@ -488,6 +493,7 @@ export function MeetScreen({ initialRoomId }: { initialRoomId?: string } = {}) {
     primeAudioOutput,
     addReaction,
     clearReactions,
+    onTtsMessage: handleTtsMessage,
     chat: {
       setChatMessages,
       setChatOverlayMessages,
@@ -894,7 +900,7 @@ export function MeetScreen({ initialRoomId }: { initialRoomId?: string } = {}) {
           isChatOpen={isChatOpen}
           unreadCount={unreadCount}
           isMirrorCamera={isMirrorCamera}
-          activeSpeakerId={activeSpeakerId}
+          activeSpeakerId={effectiveActiveSpeakerId}
           resolveDisplayName={resolveDisplayName}
           onToggleMute={toggleMute}
           onToggleCamera={toggleCamera}
